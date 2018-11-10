@@ -7,6 +7,7 @@ class MainPage extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            pickedColor: 'white',
             squares: new Array(64).fill(0)
                 .map((a, i) => {
                     const oddCol = i % 2 !== 0;
@@ -30,7 +31,18 @@ class MainPage extends Component {
     }
 
     handleClick(index) {
-        console.log(`clicked on square ${index}`);
+        // TODO check whether it's the players go
+        // TODO check whether it's a legitimate move
+
+        // update board
+        const squares = [...this.state.squares];
+        squares[index] = {
+            occupied: true,
+            playerColor: this.state.pickedColor,
+        };
+        this.setState({ squares }, () => {
+            // invoke web worker to calc computers move
+        })
     }
 
     render() {
