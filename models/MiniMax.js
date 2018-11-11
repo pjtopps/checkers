@@ -6,8 +6,6 @@ class MiniMax {
         this.endChecker = props.endChecker;
         this.scorer = props.scorer;
         this.maxTurns = Math.min(props.maxTurns, 50);
-        this.max = 50000;
-        this.count = 0;
     }
 
     play(gameState) {
@@ -15,15 +13,12 @@ class MiniMax {
     }
 
     recursive(gameState, turnNo, index) {
-        this.count++;
-        if (this.count > this.max) return;
         const gameOver = this.endChecker(gameState);
         if (
             gameOver ||
             turnNo >= this.maxTurns
         ) {
             const score = this.scorer(gameState);
-
             return {
                 turns: turnNo,
                 nextState: gameState,

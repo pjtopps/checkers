@@ -1,8 +1,8 @@
 const readline = require('readline');
 const MiniMax = require('../models/MiniMax');
 
-const board = [
-    ['X',null,null],
+let board = [
+    [null,null,null],
     [null,null,null],
     [null,null,null],
 ];
@@ -50,20 +50,10 @@ function endChecker(gameState, log) {
     return false;
 }
 
-function scorer(gameState, log) {
-    let ans;
-    if (checkWin(gameState, 'X')) ans =  -1;
-    else if (checkWin(gameState, 'O')) ans =  1;
-    else ans =  0;
-    if (log) {
-        console.log('***************')
-        console.log('score', ans);
-        console.log(gameState[0])
-        console.log(gameState[1])
-        console.log(gameState[2])
-        console.log('***************')
-    }
-    return ans;
+function scorer(gameState) {
+    if (checkWin(gameState, 'X')) return  -1;
+    if (checkWin(gameState, 'O')) return  1;
+    return  0;
 }
 
 function moveFinder(gameState, invokersTurn) {
@@ -102,7 +92,13 @@ const player = new MiniMax({
     scorer,
 });
 
-player.play(board)
+const nextMove = player.play(board);
+board = nextMove.nextState;
+
+console.log('comps turn');
+console.log(board[0]);
+console.log(board[1]);
+console.log(board[2]);
 
 const next = () => rl.question('2 numbers pls\n', (ans) => {
     if (ans === 'end') return rl.close();
