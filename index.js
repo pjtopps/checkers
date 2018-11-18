@@ -1,5 +1,6 @@
-const server = require('./server');
+const express = require('express');
 const next = require('next');
+const server = require('./server');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });

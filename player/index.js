@@ -55,7 +55,6 @@ function moveFinder(gameState, invokersTurn) {
             if (!gameState[i][j].occupied) options.push([i, j]);
         }
     }
-
     const nextStates = options.map((opt, i) => {
         const newBoard = JSON.parse(JSON.stringify(gameState));
         newBoard[opt[0]][opt[1]] = {

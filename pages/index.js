@@ -1,17 +1,19 @@
 import React, { Component } from 'react';
 import Square from '../components/Square';
-import { moveFinder, endChecker, scorer } from '../player';
-import MiniMax from '../models/MiniMax';
+
+import Worker from '../player/player.worker.js';
 
 import '../static/styles/index.css';
 
-// Object.defineProperty(Array.prototype, 'flat', {
-//     value: function(depth = 1) {
-//       return this.reduce(function (flat, toFlatten) {
-//         return flat.concat((Array.isArray(toFlatten) && (depth-1)) ? toFlatten.flat(depth-1) : toFlatten);
-//       }, []);
-//     }
-// });
+if (!Array.prototype.flat) {
+    Object.defineProperty(Array.prototype, 'flat', {
+        value: function(depth = 1) {
+          return this.reduce(function (flat, toFlatten) {
+            return flat.concat((Array.isArray(toFlatten) && (depth-1)) ? toFlatten.flat(depth-1) : toFlatten);
+          }, []);
+        }
+    });
+}
 
 class MainPage extends Component {
     constructor(props) {
@@ -28,8 +30,35 @@ class MainPage extends Component {
                 }),
         };
         this.handleClick = this.handleClick.bind(this);
+        this.playMove = this.playMove.bind(this);
+        this.begin = this.begin.bind(this);
+    }
 
-        this.minimax = new MiniMax({ endChecker, scorer, moveFinder })
+    componentDidMount() {
+        this.worker = new Worker();
+        this.worker.onmessage = this.playMove;
+    }
+
+    componentWillUnmount() {
+        this.worker.terminate();
+    }
+
+    begin() {
+        this.worker.postMessage(this.state.squares);
+    }
+
+    reset() {
+        this.worker.postMessage('stop');
+        this.setState({
+            squares: new Array(3).fill(0)
+                .map((a, i) => {
+                    return new Array(3).fill(0)
+                        .map(() => ({
+                            occupied: false,
+                            playerColor: null,
+                        }));
+                }),
+        });
     }
 
     handleClick(index) {
@@ -44,9 +73,15 @@ class MainPage extends Component {
         };
 
         this.setState({ squares }, () => {
-            const { nextState } = this.minimax.play(squares);
-            this.setState({ squares: nextState });
+            this.worker.postMessage(squares);
         })
+    }
+
+    playMove(e) {
+        console.log('recieved message from worker');
+        const bestMove = e.data;
+        console.log(bestMove)
+        this.setState({ squares: bestMove.nextState });
     }
 
     render() {
@@ -64,6 +99,8 @@ class MainPage extends Component {
                             />
                         ))}
                 </div>
+                <button onClick={this.begin}>Play</button>
+                <textarea />
             </div>
         );
     }

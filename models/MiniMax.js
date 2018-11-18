@@ -1,4 +1,4 @@
-const { minBy } = require('lodash');
+import { minBy } from 'lodash';
 
 class MiniMax {
     constructor(props = {}) {
@@ -51,4 +51,4 @@ class MiniMax {
     }
 }
 
-module.exports = MiniMax;
+export default MiniMax;
