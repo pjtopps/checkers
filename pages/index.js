@@ -1,47 +1,51 @@
 import React, { Component } from 'react';
 import Square from '../components/Square';
+import { moveFinder, endChecker, scorer } from '../player';
+import MiniMax from '../models/MiniMax';
 
 import '../static/styles/index.css';
+
+// Object.defineProperty(Array.prototype, 'flat', {
+//     value: function(depth = 1) {
+//       return this.reduce(function (flat, toFlatten) {
+//         return flat.concat((Array.isArray(toFlatten) && (depth-1)) ? toFlatten.flat(depth-1) : toFlatten);
+//       }, []);
+//     }
+// });
 
 class MainPage extends Component {
     constructor(props) {
         super(props);
         this.state = {
             pickedColor: 'white',
-            squares: new Array(64).fill(0)
+            squares: new Array(3).fill(0)
                 .map((a, i) => {
-                    const oddCol = i % 2 !== 0;
-                    const oddRow = Math.floor(i / 8) % 2 !== 0;
-                    const darkSquare = oddRow ? !oddCol : oddCol;
-
-                    let occupied = false;
-                    let playerColor = null;
-                    if (i < 24 && darkSquare) {
-                        occupied = true;
-                        playerColor = 'black';
-                    } else if (i > 39 && darkSquare) {
-                        occupied = true;
-                        playerColor = 'white';
-                    }
-
-                    return ({ occupied, playerColor, darkSquare });
+                    return new Array(3).fill(0)
+                        .map(() => ({
+                            occupied: false,
+                            playerColor: null,
+                        }));
                 }),
         };
         this.handleClick = this.handleClick.bind(this);
+
+        this.minimax = new MiniMax({ endChecker, scorer, moveFinder })
     }
 
     handleClick(index) {
-        // TODO check whether it's the players go
-        // TODO check whether it's a legitimate move
+        const row = Math.floor(index / 3);
+        const col = Math.floor(index % 3);
 
         // update board
-        const squares = [...this.state.squares];
-        squares[index] = {
+        const squares = JSON.parse(JSON.stringify(this.state.squares));
+        squares[row][col] = {
             occupied: true,
             playerColor: this.state.pickedColor,
         };
+
         this.setState({ squares }, () => {
-            // invoke web worker to calc computers move
+            const { nextState } = this.minimax.play(squares);
+            this.setState({ squares: nextState });
         })
     }
 
@@ -51,6 +55,7 @@ class MainPage extends Component {
             <div className="page">
                 <div className="board">
                     {squares
+                        .flat()
                         .map((props, i) => (
                             <Square
                                 key={i}

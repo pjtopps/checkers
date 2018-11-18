@@ -1,36 +1,74 @@
-import { minBy } from 'lodash';
+function checkWin(gameState, sym) {
+    let tl = 0;
 
-// returns object with properties including:
-// squares - the state of the board after move
-// goNumber - the minimum number of moves it will take to beat a minmax opponent
-// TODO make a generic function that can handle binary/scored games... ?
-// TODO find a nice way to make minmax a module that can handle any moveFinder, and any definition of a win
-// TODO optimizations - pruning branches
-function minmax(squares, goNumber) {
-    const numWhite = squares
-        .filter(sq => sq.occupied && sq.playerColor === 'white')
-        .length;
-    const numBlack = squares
-        .filter(sq => sq.occupied && sq.playerColor === 'black')
-        .length;
+    for (let i = 0; i < 3; i++) {
+        let hCount = 0;
+        let vCount = 0;
+        for (let j = 0; j < 3; j++) {
+            if (gameState[i][j].playerColor === sym) {
+                hCount++;
+                if (i === j) tl++;
+            }
+            if (gameState[j][i].playerColor === sym) vCount++;
+        }
+        if ([hCount, vCount].includes(3)) return true;
+        hCount = 0;
+        vCount = 0;
+    }
 
-    if (!numBlack) return { blackWins: false, goNumber, squares };
-    if (!numWhite) return { blackWins: true, goNumber, squares };
+    if (tl === 3) return true;
 
-    const nextSquares = moveFinder(squares);
-
-    const results = nextSquares.map(sq => minmax(sq, goNumber + 1));
-
-    const desiredMoves = results
-        .filter(({ blackWins }) => {
-            return (goNumber % 2) === 0 ? blackWins : !blackWins;
-        });
-
-    // TODO handle no possible wins
-
-    const quickest = minBy(desiredMoves, m => m.goNumber);
-
-    return { ...quickest, squares };
+    if (
+        gameState[2][0].playerColor === sym &&
+        gameState[1][1].playerColor === sym &&
+        gameState[0][2].playerColor === sym
+    ) return true;
+    return false;
 }
 
-export default minmax;
+function endChecker(gameState, log) {
+    let occupied = 0;
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (gameState[i][j].occupied) occupied++
+        }
+    }
+    if (
+        occupied === 9 ||
+        checkWin(gameState, 'white') ||
+        checkWin(gameState, 'black')
+    ) return true;
+    return false;
+}
+
+function scorer(gameState) {
+    if (checkWin(gameState, 'white')) return  -1;
+    if (checkWin(gameState, 'black')) return  1;
+    return  0;
+}
+
+function moveFinder(gameState, invokersTurn) {
+    const sym = invokersTurn ? 'black' : 'white';
+    const options = [];
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (!gameState[i][j].occupied) options.push([i, j]);
+        }
+    }
+
+    const nextStates = options.map((opt, i) => {
+        const newBoard = JSON.parse(JSON.stringify(gameState));
+        newBoard[opt[0]][opt[1]] = {
+            occupied: true,
+            playerColor: sym,
+        };
+        return newBoard;
+    });
+    return nextStates;
+}
+
+export {
+    moveFinder,
+    scorer,
+    endChecker,
+};
